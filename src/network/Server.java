@@ -2,6 +2,7 @@ package network;
 import java.io.*;
 import java.net.ServerSocket;
 import java.security.KeyStore;
+import java.sql.SQLException;
 import java.util.Scanner;
 
 import javax.net.ServerSocketFactory;
@@ -16,9 +17,10 @@ public class Server implements Runnable {
     private static int numConnectedClients = 0;
     private Database db;
 
-    public Server(ServerSocket ss) throws IOException {
+    public Server(ServerSocket ss) throws IOException, ClassNotFoundException, SQLException {
         serverSocket = ss;
         newListener();
+        db = new Database();
     }
 
     public void run() {
@@ -34,7 +36,7 @@ public class Server implements Runnable {
             	subject.split("O=")[1].split(",")[0],	// Usertype
             	subject.split("L=")[1].split(",")[0],	// Name
             };
-            User u;
+            User u = null;
             switch (info[2].toString()) {
 			case "Doctor":
 				u = new Doctor(info[3], info[0], info[1]);
@@ -58,16 +60,11 @@ public class Server implements Runnable {
             BufferedReader in = null;
             out = new PrintWriter(socket.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-
-            String clientMsg = null;
-            while ((clientMsg = in.readLine()) != null) {
-			    String input = dbInput(clientMsg.split(" "));
-                System.out.println("received '" + clientMsg + "' from client");
-                System.out.print("sending '" + input + "' to client...");
-				out.println(input);
-				out.flush();
-                System.out.println("done\n");
-			}
+            
+            db.establishConnection();
+            dbInput(u, in, out);
+            db.terminateConnection();
+            
 			in.close();
 			out.close();
 			socket.close();
@@ -78,17 +75,42 @@ public class Server implements Runnable {
             System.out.println("Client died: " + e.getMessage());
             e.printStackTrace();
             return;
-        }
+        } catch (SQLException e) {
+        	System.out.println("Database: " + e.getMessage());
+			e.printStackTrace();
+		}
     }
 
-    private String dbInput(String[] split) {
+    private String dbInput(User u, BufferedReader in, PrintWriter out) throws SQLException, IOException {
+    	String request = "Enter a command:";
+    	System.out.print("sending '" + request + "' to client...");
+        out.println(request);
+    	out.flush();
+        String clientAns = in.readLine();
+        System.out.println("received '" + clientAns + "' from client");
+        
+        request = "Enter patient name";
+        System.out.print("sending '" + request + "' to client...");
+        out.println(request);
+		out.flush();
+    	clientAns = in.readLine();
+    	System.out.println("received '" + clientAns + "' from client");
 		
+		switch (clientAns.toLowerCase()) {
+		case "add":	
+			break;
+
+		default: 
+			break;
+		}
+    	
+    	System.out.println("done\n");
     	return null;
 	}
 
 	private void newListener() { (new Thread(this)).start(); } // calls run()
 
-    public static void main(String args[]) {
+    public static void main(String args[]) throws ClassNotFoundException, SQLException {
     	Scanner scan = new Scanner(System.in);
         int port = -1;
         if (args.length >= 1) {
