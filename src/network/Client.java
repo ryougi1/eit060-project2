@@ -5,6 +5,7 @@ import javax.net.ssl.*;
 import javax.security.cert.X509Certificate;
 import java.security.KeyStore;
 import java.security.cert.*;
+import java.util.Scanner;
 
 /*
  * This example shows how to set up a key manager to perform client
@@ -19,21 +20,25 @@ public class Client {
     public static void main(String[] args) throws Exception {
         String host = null;
         int port = -1;
-        for (int i = 0; i < args.length; i++) {
-            System.out.println("args[" + i + "] = " + args[i]);
-        }
-        if (args.length < 2) {
-            System.out.println("USAGE: java client host port");
-            System.exit(-1);
-        }
-        try { /* get input parameters */
-            host = args[0];
-            port = Integer.parseInt(args[1]);
-        } catch (IllegalArgumentException e) {
-            System.out.println("USAGE: java client host port");
-            System.exit(-1);
-        }
-
+//        for (int i = 0; i < args.length; i++) {
+//            System.out.println("args[" + i + "] = " + args[i]);
+//        }
+//        if (args.length < 2) {
+//            System.out.println("USAGE: java client host port");
+//            System.exit(-1);
+//        }
+//        try { /* get input parameters */
+//            host = args[0];
+//            port = Integer.parseInt(args[1]);
+//        } catch (IllegalArgumentException e) {
+//            System.out.println("USAGE: java client host port");
+//            System.exit(-1);
+//        }
+        Scanner scan = new Scanner(System.in);
+        System.out.print("Host Port: ");
+        host = scan.next();
+        port = scan.nextInt();
+        
         try { /* set up a key manager for client authentication */
             SSLSocketFactory factory = null;
             try {
@@ -43,8 +48,8 @@ public class Client {
                 KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
                 TrustManagerFactory tmf = TrustManagerFactory.getInstance("SunX509");
                 SSLContext ctx = SSLContext.getInstance("TLS");
-                ks.load(new FileInputStream("clientkeystore"), password);  // keystore password (storepass)
-				ts.load(new FileInputStream("clienttruststore"), password); // truststore password (storepass);
+                ks.load(new FileInputStream("resources/clientkeystore"), password);  // keystore password (storepass)
+				ts.load(new FileInputStream("resources/clienttruststore"), password); // truststore password (storepass);
 				kmf.init(ks, password); // user password (keypass)
 				tmf.init(ts); // keystore can be used as truststore here
 				ctx.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);

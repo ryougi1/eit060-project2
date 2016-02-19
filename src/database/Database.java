@@ -18,11 +18,19 @@ public class Database {
 	public Database() throws ClassNotFoundException, SQLException {
 		// Registrera JDBC drivrutin
 		Class.forName(JDBC_DRIVER);
-
+	}
+	
+	public void establishConnection() throws SQLException {
 		// Anslut
 		System.out.print("Databasen " + DB_URL);
 		conn = DriverManager.getConnection(DB_URL, USER, PASS);
 		System.out.println(" ansluten.");
+	}
+	
+	public void terminateConnection() throws SQLException {
+		System.out.print("Databasen " + DB_URL);
+		conn.close();
+		System.out.println(" stängd.");
 	}
 	
 	public boolean createTables() {

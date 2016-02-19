@@ -4,8 +4,8 @@ public class Nurse extends User {
 	
 	private String division;
 	
-	public Nurse(String name, String pNbr, String division, String password) {
-		super(name, pNbr, password);
+	public Nurse(String name, String pNbr, String division) {
+		super(name, pNbr);
 		this.division = division;
 	}
 	

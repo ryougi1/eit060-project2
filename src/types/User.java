@@ -1,14 +1,13 @@
 package types;
 
 public abstract class User {
-	protected String name, pNbr, password;
+	protected String name, pNbr;
 	
-	public User(String name, String password) {
+	public User(String name) {
 		this.name = name;
-		this.password = password;
 	}
 
-	public User(String name, String pNbr, String password) {
+	public User(String name, String pNbr) {
 		this.name = name;
 		this.pNbr = pNbr;
 	}
