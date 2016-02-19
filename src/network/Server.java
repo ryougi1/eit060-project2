@@ -62,7 +62,15 @@ public class Server implements Runnable {
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             
             db.establishConnection();
-            dbInput(u, in, out);
+            int i = 10;
+            while(i > 0) {
+            	try {
+					dbInput(u, in, out);
+				} catch (Exception e) {
+					break;
+				}
+            	i--;
+            }
             db.terminateConnection();
             
 			in.close();
@@ -81,32 +89,59 @@ public class Server implements Runnable {
 		}
     }
 
-    private String dbInput(User u, BufferedReader in, PrintWriter out) throws SQLException, IOException {
-    	String request = "Enter a command:";
+    private void dbInput(User u, BufferedReader in, PrintWriter out) throws Exception {
+    	String command = sendRequest("Enter a command:", in, out);
+        String patient = sendRequest("Enter patient name", in, out);
+    	String log = null;
+		switch (command.toLowerCase()) {
+		case "add":	
+			// Only doctor can create new records for a patient provided that the doctor is treating the patient
+			if(!(u instanceof Doctor)) {
+				sendDeniedPermission(command, in, out);
+			}
+			String nurse = sendRequest("Enter name of nurse associated with " + patient, in, out);
+			String data = sendRequest("Enter data for " + patient + "'s record", in, out);
+			
+			log = "Record: " + "Command: " + command + ". Patient: " + patient 
+					+ ". Nurse: " + nurse + ". Data: " + data;
+			System.out.println(log);
+			break;
+		case "remove": 
+			// Only government agency is allowed to delete records
+			if(!(u instanceof Government)) {
+				sendDeniedPermission(command, in, out);
+			}
+			break;
+		case "read": 
+			// Everyone can read records, assumed they are associated with him/her
+			break;
+		case "edit": 
+			// Only patients and government is not allowed to edit records
+			if(u instanceof Patient || u instanceof Government) {
+				sendDeniedPermission(command, in, out);
+			}
+			break;
+		default: 
+			sendRequest("You didn't use a correct command", in, out);
+			break;
+		}
+    	System.out.println("done\n");
+	}
+    
+    private String sendRequest(String request, BufferedReader in, PrintWriter out) throws Exception {
     	System.out.print("sending '" + request + "' to client...");
         out.println(request);
     	out.flush();
         String clientAns = in.readLine();
+        if(clientAns == null)
+        	throw new Exception("client disconnected");
         System.out.println("received '" + clientAns + "' from client");
-        
-        request = "Enter patient name";
-        System.out.print("sending '" + request + "' to client...");
-        out.println(request);
-		out.flush();
-    	clientAns = in.readLine();
-    	System.out.println("received '" + clientAns + "' from client");
-		
-		switch (clientAns.toLowerCase()) {
-		case "add":	
-			break;
-
-		default: 
-			break;
-		}
-    	
-    	System.out.println("done\n");
-    	return null;
-	}
+        return clientAns;
+    }
+    
+    private void sendDeniedPermission(String command, BufferedReader in, PrintWriter out) throws Exception {
+    	sendRequest("You don't have the required permission to execute " + command, in, out);
+    }
 
 	private void newListener() { (new Thread(this)).start(); } // calls run()
 

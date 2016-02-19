@@ -88,7 +88,7 @@ public class Client {
 			for (;;) {
 				System.out.println("received '" + in.readLine() + "' from server\n");
 
-				System.out.print(">");
+				System.out.print("> ");
                 msg = read.readLine();
                 if (msg.equalsIgnoreCase("quit")) {
 				    break;
