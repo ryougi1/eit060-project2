@@ -146,13 +146,15 @@ public class Server implements Runnable {
 	private void newListener() { (new Thread(this)).start(); } // calls run()
 
     public static void main(String args[]) throws ClassNotFoundException, SQLException {
-    	Scanner scan = new Scanner(System.in);
+    	System.out.print("Args: ");
+    	args = new Scanner(System.in).nextLine().split(" ");
         int port = -1;
+        for (int i = 0; i < args.length; i++) {
+            System.out.println("args[" + i + "] = " + args[i]);
+        }
         if (args.length >= 1) {
             port = Integer.parseInt(args[0]);
         }
-        System.out.print("Port: ");
-        port = scan.nextInt();
         System.out.println("\nServer Started\n");
         String type = "TLS";
         try {
@@ -164,7 +166,6 @@ public class Server implements Runnable {
             System.out.println("Unable to start Server: " + e.getMessage());
             e.printStackTrace();
         }
-        scan.close();
     }
 
     private static ServerSocketFactory getServerSocketFactory(String type) {
