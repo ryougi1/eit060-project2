@@ -1,0 +1,55 @@
+<project name="Certificates" basedir=".">
+
+  <property name="certs.dir"  value="client"/>
+  <property name="CA.dir"  value="server"/>
+
+  <target name="clean">
+    <delete dir="${certs.dir}" />
+  </target>
+
+  <target name="certs">
+    <input message="Please enter personnumber (1970-01-01):" addproperty="pNbr" />
+    <input message="Please enter division (Diagnostics/Surgery/Neurology):" addproperty="div" />
+    <input message="Please enter type (Patient/Nurse/Doctor/Government):" addproperty="type" />
+    <input message="Please enter full name:" addproperty="name" />
+    <input message="Please enter password (At least 6 characters):" addproperty="pw" />
+    <property name="attr"  value="/CN=${pNbr}/OU=${div}/O=${type}/L=${name}"/>
+    <property name="attr-seperated"  value="CN=${pNbr}, OU=${div}, O=${type}, L=${name}"/>
+    <mkdir dir="${certs.dir}/${pNbr}" />
+    <echo message="Create private key "/>
+    <exec executable="openssl" failonerror="true">
+      <arg line="genrsa -out '${certs.dir}/${pNbr}/privkey.pem' 2048" />
+    </exec>
+    <echo message="Create public key "/>
+    <exec executable="openssl" failonerror="true">
+      <arg line="req -new -x509 -key '${certs.dir}/${pNbr}/privkey.pem' -out '${certs.dir}/${pNbr}/publickey.cer' -subj '${attr}'" />
+   </exec>
+   <echo message="Create truststore with public key"/>
+    <exec executable="keytool" failonerror="true">
+      <arg line="-keystore '${certs.dir}/${pNbr}/truststore' -importcert -file '${CA.dir}/publickey.cer' -alias rootCA -storepass '${pw}' -noprompt" />
+    </exec>
+    <echo message="Create keystore "/>
+    <exec executable="keytool" failonerror="true">
+      <arg line="-genkeypair -keystore '${certs.dir}/${pNbr}/keystore' -dname '${attr-seperated}' -storepass '${pw}' -noprompt" />
+    </exec>
+    <echo message="Load certificate request into keystore "/>
+    <exec executable="keytool" failonerror="true">
+      <arg line="-keystore '${certs.dir}/${pNbr}/keystore' -certreq -file '${certs.dir}/${pNbr}/publickey.csr' -storepass '${pw}' -noprompt" />
+    </exec>
+    <echo message="Create signed certificate from CA "/>
+    <exec executable="openssl" failonerror="true">
+      <arg line="x509 -req -in '${certs.dir}/${pNbr}/publickey.csr' -CA '${CA.dir}/publickey.cer' -CAkey '${CA.dir}/privkey.pem' -CAcreateserial -out '${certs.dir}/${pNbr}/newcert.cer'" />
+    </exec>
+    <echo message="Import CA certificate into keystore "/>
+    <exec executable="keytool" failonerror="true">
+      <arg line="-keystore '${certs.dir}/${pNbr}/keystore' -importcert -file '${CA.dir}/publickey.cer' -alias rootCA -storepass '${pw}' -noprompt" />
+    </exec>
+    <echo message="Import signed certificate into keystore "/>
+    <exec executable="keytool" failonerror="true">
+      <arg line="-keystore '${certs.dir}/${pNbr}/keystore' -importcert -file '${certs.dir}/${pNbr}/newcert.cer' -storepass '${pw}' -noprompt" />
+    </exec>
+    <echo message="Remove signed certificate file and certificate request file "/>
+    <delete file="${certs.dir}/${pNbr}/newCert.cer" />
+    <delete file="${certs.dir}/${pNbr}/publickey.csr" />
+  </target>
+</project>

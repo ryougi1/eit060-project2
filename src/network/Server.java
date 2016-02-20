@@ -146,8 +146,10 @@ public class Server implements Runnable {
 	private void newListener() { (new Thread(this)).start(); } // calls run()
 
     public static void main(String args[]) throws ClassNotFoundException, SQLException {
-    	System.out.print("Args: ");
-    	args = new Scanner(System.in).nextLine().split(" ");
+    	System.out.print("Port: ");
+    	Scanner scan = new Scanner(System.in);
+    	args = scan.nextLine().split(" ");
+    	scan.close();
         int port = -1;
         for (int i = 0; i < args.length; i++) {
             System.out.println("args[" + i + "] = " + args[i]);
@@ -179,8 +181,8 @@ public class Server implements Runnable {
 				KeyStore ts = KeyStore.getInstance("JKS");
                 char[] password = "password".toCharArray();
                 
-                ks.load(new FileInputStream("resources/serverkeystore"), password);  // keystore password (storepass)
-                ts.load(new FileInputStream("resources/servertruststore"), password); // truststore password (storepass)
+                ks.load(new FileInputStream("certificates/server/keystore"), password);  // keystore password (storepass)
+                ts.load(new FileInputStream("certificates/server/truststore"), password); // truststore password (storepass)
                 kmf.init(ks, password); // certificate password (keypass)
                 tmf.init(ts);  // possible to use keystore as truststore here
                 ctx.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);

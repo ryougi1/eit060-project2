@@ -1,10 +1,8 @@
 package network;
-import java.net.*;
 import java.io.*;
 import javax.net.ssl.*;
 import javax.security.cert.X509Certificate;
 import java.security.KeyStore;
-import java.security.cert.*;
 import java.util.Scanner;
 
 /*
@@ -18,8 +16,10 @@ import java.util.Scanner;
 public class Client {
 
     public static void main(String[] args) throws Exception {
-    	System.out.print("Args: ");
-    	args = new Scanner(System.in).nextLine().split(" ");
+    	System.out.print("Localhost port pNbr password: ");
+    	Scanner scan = new Scanner(System.in);
+    	args = scan.nextLine().split(" ");
+    	scan.close();
     	String host = null;
         int port = -1;
         String pNbr = null;
@@ -46,14 +46,15 @@ public class Client {
         try { /* set up a key manager for client authentication */
             SSLSocketFactory factory = null;
             try {
-                char[] password = "password".toCharArray();
+                //char[] password = "password".toCharArray();
+            	char[] password = args[3].toCharArray();
                 KeyStore ks = KeyStore.getInstance("JKS");
                 KeyStore ts = KeyStore.getInstance("JKS");
                 KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
                 TrustManagerFactory tmf = TrustManagerFactory.getInstance("SunX509");
                 SSLContext ctx = SSLContext.getInstance("TLS");
-                ks.load(new FileInputStream("resources/" + pNbr + "/clientkeystore"), password);  // keystore password (storepass)
-				ts.load(new FileInputStream("resources/" + pNbr + "/clienttruststore"), password); // truststore password (storepass);
+                ks.load(new FileInputStream("certificates/client/" + pNbr + "/keystore"), password);  // keystore password (storepass)
+				ts.load(new FileInputStream("certificates/client/" + pNbr + "/truststore"), password); // truststore password (storepass);
 				kmf.init(ks, password); // user password (keypass)
 				tmf.init(ts); // keystore can be used as truststore here
 				ctx.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
