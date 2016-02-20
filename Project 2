@@ -1,20 +1,18 @@
-ServerMain.java
-  ServerConnectionHandler.init()
-    load server key and truststore
-    creates User (Gov, Doc, Patient...) reference object
-    handle input to database
-      and log it (AuditLog)
+Server.java
+  load server key and truststore
+  creates User (Gov, Doc, Patient...) reference object
+  handle input to database
+    and log it, aka audit log
 
 
-ClientMain.java
-  new ClientConnectionHandler()
-	 new ClientGUI()
-    getPassword()   (for KeyStore)
+Client.java
+  runs the GUI
+  fetches the client password   (for the keystore)
   load client key and truststore
 
 Database.java
   Uses RecordEntry as a reference object
-  create records
-  edit records
-  delete records
-  ...
+  create records	(add)
+  edit records		(edit)
+  delete records	(remove)
+  get records 		(read)
