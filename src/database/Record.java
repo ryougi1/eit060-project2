@@ -1,8 +1,5 @@
 package database;
 
-import java.sql.PreparedStatement;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import types.*;
@@ -10,18 +7,28 @@ import types.*;
 
 public class Record {
 	
+	private int recordNbr;
+	private Patient patient;
+	private Nurse nurse;
+	private Doctor doctor;
+	private String division;
 	private List<String> data;
-	private Patient pat;
-	private Doctor doc;
-	private Nurse nur;
 	
-	public Record(Patient pat, Doctor doc, Nurse nur, List<String> data) {
-		this.pat = pat;
-		this.doc = doc;
-		this.nur = nur;
+	public Record(int recordNbr, Patient patient, Nurse nurse, Doctor doctor, String division, List<String> data) {
+		this.recordNbr = recordNbr;
+		this.patient = patient;
+		this.nurse = nurse;
+		this.doctor = doctor;
+		this.division = division;
 		this.data = data;
 	}
-
+	
+	public int getRecordNbr() 	{	return recordNbr;	}
+	public Patient getPatient() {	return patient;		}
+	public Nurse getNurse() 	{	return nurse;		}
+	public Doctor getDoctor() 	{	return doctor;		}
+	public String getDivision()	{	return division;	}
+	
 	public String getData() {
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < data.size(); i++) {
@@ -29,16 +36,4 @@ public class Record {
 		}
 		return sb.toString();
 	}
-
-	public Patient getPat() {
-		return pat;
-	}
-
-	public Doctor getDoc() {
-		return doc;
-	}
-
-	public Nurse getNur() {
-		return nur;
-	}	
 }

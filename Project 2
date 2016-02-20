@@ -5,7 +5,6 @@ ServerMain.java
     handle input to database
       and log it (AuditLog)
 
-
 ClientMain.java
   new ClientConnectionHandler()
 	 new ClientGUI()

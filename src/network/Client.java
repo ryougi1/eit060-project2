@@ -16,10 +16,12 @@ import java.util.Scanner;
 public class Client {
 
     public static void main(String[] args) throws Exception {
-    	System.out.print("Localhost port pNbr password: ");
-    	Scanner scan = new Scanner(System.in);
-    	args = scan.nextLine().split(" ");
-    	scan.close();
+    	if(args.length == 0) {
+    		System.out.print("Localhost port pNbr password: ");
+    		Scanner scan = new Scanner(System.in);
+    		args = scan.nextLine().split(" ");
+    		scan.close();    		
+    	}
     	String host = null;
         int port = -1;
         String pNbr = null;
@@ -28,10 +30,6 @@ public class Client {
         }
         if (args.length < 2) {
             System.out.println("USAGE: java client host port");
-            System.exit(-1);
-        }
-        if (args.length < 3) {
-            System.out.println("USAGE: java client host port pnbr");
             System.exit(-1);
         }
         try { /* get input parameters */
@@ -46,7 +44,6 @@ public class Client {
         try { /* set up a key manager for client authentication */
             SSLSocketFactory factory = null;
             try {
-                //char[] password = "password".toCharArray();
             	char[] password = args[3].toCharArray();
                 KeyStore ks = KeyStore.getInstance("JKS");
                 KeyStore ts = KeyStore.getInstance("JKS");

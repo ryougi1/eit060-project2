@@ -113,11 +113,11 @@ public class Server implements Runnable {
 			}
 			break;
 		case "read": 
-			// Everyone can read records, assumed they are associated with him/her
+			// Everyone can read records, assumed they are associated with patient
 			break;
 		case "edit": 
-			// Only patients and government is not allowed to edit records
-			if(u instanceof Patient || u instanceof Government) {
+			// Only Nurse and Doctor is allowed to edit records
+			if(!(u instanceof Nurse || u instanceof Doctor)) {
 				sendDeniedPermission(command, in, out);
 			}
 			break;
@@ -146,10 +146,12 @@ public class Server implements Runnable {
 	private void newListener() { (new Thread(this)).start(); } // calls run()
 
     public static void main(String args[]) throws ClassNotFoundException, SQLException {
-    	System.out.print("Port: ");
-    	Scanner scan = new Scanner(System.in);
-    	args = scan.nextLine().split(" ");
-    	scan.close();
+    	if(args.length == 0) {
+    		System.out.print("Port: ");
+    		Scanner scan = new Scanner(System.in);
+    		args = scan.nextLine().split(" ");
+    		scan.close();    		
+    	}
         int port = -1;
         for (int i = 0; i < args.length; i++) {
             System.out.println("args[" + i + "] = " + args[i]);
