@@ -16,6 +16,7 @@ public class Server implements Runnable {
     private ServerSocket serverSocket = null;
     private static int numConnectedClients = 0;
     private Database db;
+    private boolean debug = true;
 
     public Server(ServerSocket ss) throws IOException, ClassNotFoundException, SQLException {
         serverSocket = ss;
@@ -52,9 +53,9 @@ public class Server implements Runnable {
 				break;
 			}
     	    numConnectedClients++;
-            System.out.println("client connected");
-            System.out.println("client name (cert subject DN field): " + subject);
-            System.out.println(numConnectedClients + " concurrent connection(s)\n");
+            println("client connected");
+            println("client name (cert subject DN field): " + subject);
+            println(numConnectedClients + " concurrent connection(s)\n");
 
             PrintWriter out = null;
             BufferedReader in = null;
@@ -62,14 +63,10 @@ public class Server implements Runnable {
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             
             db.establishConnection();
-        	int i = 10;
-        	while(i > 0) {
-	            try {
-					dbInput(u, in, out);
-				} catch (Exception e) {
-					break;
-				}
-	            i--;
+            try {
+				dbInput(u, in, out);
+			} catch (Exception e) {
+				//Client disconnected
         	}
             db.terminateConnection();
 
@@ -77,14 +74,14 @@ public class Server implements Runnable {
 			out.close();
 			socket.close();
     	    numConnectedClients--;
-            System.out.println("client disconnected");
-            System.out.println(numConnectedClients + " concurrent connection(s)\n");
+            println("client disconnected");
+            println(numConnectedClients + " concurrent connection(s)\n");
 		} catch (IOException e) {
-            System.out.println("Client died: " + e.getMessage());
+            println("Client died: " + e.getMessage());
             e.printStackTrace();
             return;
         } catch (SQLException e) {
-        	System.out.println("Database: " + e.getMessage());
+        	println("Database: " + e.getMessage());
 			e.printStackTrace();
 		}
     }
@@ -98,18 +95,20 @@ public class Server implements Runnable {
 			// Only doctor can create new records for a patient provided that the doctor is treating the patient
 			if(!(u instanceof Doctor)) {
 				sendDeniedPermission(command, in, out);
+				break;
 			}
 			String nurse = sendRequest("Enter name of nurse associated with " + patient, in, out);
 			String data = sendRequest("Enter data for " + patient + "'s record", in, out);
 			
 			log = "Record: " + "Command: " + command + ". Patient: " + patient 
 					+ ". Nurse: " + nurse + ". Data: " + data;
-			System.out.println(log);
+			println(log);
 			break;
 		case "remove": 
 			// Only government agency is allowed to delete records
 			if(!(u instanceof Government)) {
 				sendDeniedPermission(command, in, out);
+				break;
 			}
 			break;
 		case "read": 
@@ -119,28 +118,31 @@ public class Server implements Runnable {
 			// Only Nurse and Doctor is allowed to edit records
 			if(!(u instanceof Nurse || u instanceof Doctor)) {
 				sendDeniedPermission(command, in, out);
+				break;
 			}
 			break;
 		default: 
 			sendRequest("You didn't use a correct command", in, out);
 			break;
 		}
-    	System.out.println("done\n");
+    	println("done\n");
+    	dbInput(u, in, out);
 	}
     
     private String sendRequest(String request, BufferedReader in, PrintWriter out) throws Exception {
-    	System.out.print("sending '" + request + "' to client...");
+    	print("sending '" + request + "' to client...");
         out.println(request);
     	out.flush();
         String clientAns = in.readLine();
         if(clientAns == null)
         	throw new Exception("client disconnected");
-        System.out.println("received '" + clientAns + "' from client");
+        println("received '" + clientAns + "' from client");
         return clientAns;
     }
     
     private void sendDeniedPermission(String command, BufferedReader in, PrintWriter out) throws Exception {
-    	sendRequest("You don't have the required permission to execute " + command, in, out);
+    	sendRequest("You don't have the required permission to execute " + command 
+    			+ "\nPress [ENTER] to continue", in, out);
     }
 
 	private void newListener() { (new Thread(this)).start(); } // calls run()
@@ -148,9 +150,7 @@ public class Server implements Runnable {
     public static void main(String args[]) throws ClassNotFoundException, SQLException {
     	if(args.length == 0) {
     		System.out.print("Port: ");
-    		Scanner scan = new Scanner(System.in);
-    		args = scan.nextLine().split(" ");
-    		scan.close();
+    		args = new Scanner(System.in).nextLine().split(" ");
     	}
         int port = -1;
         for (int i = 0; i < args.length; i++) {
@@ -197,5 +197,15 @@ public class Server implements Runnable {
             return ServerSocketFactory.getDefault();
         }
         return null;
+    }
+    
+    private void print(String text) {
+    	if(debug)
+    		System.out.print(text);
+    }
+    
+    private void println(String text) {
+    	if(debug)
+    		System.out.println(text);
     }
 }

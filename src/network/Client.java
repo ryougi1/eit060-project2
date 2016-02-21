@@ -18,9 +18,7 @@ public class Client {
     public static void main(String[] args) throws Exception {
     	if(args.length == 0) {
     		System.out.print("Localhost port pNbr password: ");
-    		Scanner scan = new Scanner(System.in);
-    		args = scan.nextLine().split(" ");
-    		scan.close();
+    		args = new Scanner(System.in).nextLine().split(" ");    		
     	}
     	String host = null;
         int port = -1;
@@ -109,5 +107,4 @@ public class Client {
             e.printStackTrace();
         }
     }
-
 }
