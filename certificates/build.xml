@@ -12,7 +12,10 @@
     <input message="Please enter division (Diagnostics/Surgery/Neurology):" addproperty="div" />
     <input message="Please enter type (Patient/Nurse/Doctor/Government):" addproperty="type" />
     <input message="Please enter full name:" addproperty="name" />
-    <input message="Please enter password (At least 6 characters):" addproperty="pw" />
+    <input message="Please enter password (At least 6 characters):" addproperty="pw">
+      <handler type="secure" />
+    </input>
+    <echo message="${pw}"/>
     <property name="attr"  value="/CN=${pNbr}/OU=${div}/O=${type}/L=${name}"/>
     <property name="attr-seperated"  value="CN=${pNbr}, OU=${div}, O=${type}, L=${name}"/>
     <mkdir dir="${certs.dir}/${pNbr}" />
@@ -37,6 +40,7 @@
       <arg line="-keystore '${certs.dir}/${pNbr}/keystore' -certreq -file '${certs.dir}/${pNbr}/publickey.csr' -storepass '${pw}' -noprompt" />
     </exec>
     <echo message="Create signed certificate from CA "/>
+    <input message="wait"/>
     <exec executable="openssl" failonerror="true">
       <arg line="x509 -req -in '${certs.dir}/${pNbr}/publickey.csr' -CA '${CA.dir}/publickey.cer' -CAkey '${CA.dir}/privkey.pem' -CAcreateserial -out '${certs.dir}/${pNbr}/newcert.cer'" />
     </exec>
