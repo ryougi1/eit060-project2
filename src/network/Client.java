@@ -20,7 +20,7 @@ public class Client {
     		System.out.print("Localhost port pNbr password: ");
     		Scanner scan = new Scanner(System.in);
     		args = scan.nextLine().split(" ");
-    		scan.close();    		
+    		scan.close();
     	}
     	String host = null;
         int port = -1;

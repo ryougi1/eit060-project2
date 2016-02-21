@@ -62,17 +62,17 @@ public class Server implements Runnable {
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             
             db.establishConnection();
-            int i = 10;
-            while(i > 0) {
-            	try {
+        	int i = 10;
+        	while(i > 0) {
+	            try {
 					dbInput(u, in, out);
 				} catch (Exception e) {
 					break;
 				}
-            	i--;
-            }
+	            i--;
+        	}
             db.terminateConnection();
-            
+
 			in.close();
 			out.close();
 			socket.close();
@@ -150,7 +150,7 @@ public class Server implements Runnable {
     		System.out.print("Port: ");
     		Scanner scan = new Scanner(System.in);
     		args = scan.nextLine().split(" ");
-    		scan.close();    		
+    		scan.close();
     	}
         int port = -1;
         for (int i = 0; i < args.length; i++) {

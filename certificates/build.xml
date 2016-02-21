@@ -32,7 +32,7 @@
     <exec executable="keytool" failonerror="true">
       <arg line="-genkeypair -keystore '${certs.dir}/${pNbr}/keystore' -dname '${attr-seperated}' -storepass '${pw}' -noprompt" />
     </exec>
-    <echo message="Load certificate request into keystore "/>
+    <echo message="Create certificate request from keystore "/>
     <exec executable="keytool" failonerror="true">
       <arg line="-keystore '${certs.dir}/${pNbr}/keystore' -certreq -file '${certs.dir}/${pNbr}/publickey.csr' -storepass '${pw}' -noprompt" />
     </exec>
