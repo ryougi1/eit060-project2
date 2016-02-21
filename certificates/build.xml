@@ -40,7 +40,6 @@
       <arg line="-keystore '${certs.dir}/${pNbr}/keystore' -certreq -file '${certs.dir}/${pNbr}/publickey.csr' -storepass '${pw}' -noprompt" />
     </exec>
     <echo message="Create signed certificate from CA "/>
-    <input message="wait"/>
     <exec executable="openssl" failonerror="true">
       <arg line="x509 -req -in '${certs.dir}/${pNbr}/publickey.csr' -CA '${CA.dir}/publickey.cer' -CAkey '${CA.dir}/privkey.pem' -CAcreateserial -out '${certs.dir}/${pNbr}/newcert.cer'" />
     </exec>
