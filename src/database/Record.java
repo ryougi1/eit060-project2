@@ -1,7 +1,5 @@
 package database;
 
-import java.util.List;
-
 import types.*;
 
 
@@ -12,15 +10,16 @@ public class Record {
 	private Nurse nurse;
 	private Doctor doctor;
 	private String division;
-	private List<String> data;
+	private StringBuilder data;
 	
-	public Record(int recordNbr, Patient patient, Nurse nurse, Doctor doctor, String division, List<String> data) {
+	public Record(int recordNbr, Patient patient, Nurse nurse, Doctor doctor, String division, String data) {
 		this.recordNbr = recordNbr;
 		this.patient = patient;
 		this.nurse = nurse;
 		this.doctor = doctor;
 		this.division = division;
-		this.data = data;
+		this.data = new StringBuilder();
+		this.data.append(data);
 	}
 	
 	public int getRecordNbr() 	{	return recordNbr;	}
@@ -30,10 +29,15 @@ public class Record {
 	public String getDivision()	{	return division;	}
 	
 	public String getData() {
-		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < data.size(); i++) {
-			sb.append(data.get(i) + "\n");
-		}
-		return sb.toString();
+		return data.toString();
+	}
+	
+	public void appendData(String data) {
+		this.data.append(" | " + data);
+	}
+	
+	@Override
+	public String toString() {
+		return recordNbr + " | " + patient.getPNbr() + " | " + nurse.getPNbr() + " | " + doctor.getPNbr() + " | " + division + " | Data: " + data.toString();
 	}
 }

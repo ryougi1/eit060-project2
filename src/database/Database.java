@@ -1,11 +1,19 @@
 package database;
 
+import java.io.FileInputStream;
+import java.security.cert.CertificateFactory;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.LinkedList;
 import java.util.List;
 
+import java.security.cert.X509Certificate;
+
 import types.Doctor;
+import types.Government;
 import types.Nurse;
 import types.Patient;
 import types.User;
@@ -20,6 +28,8 @@ public class Database {
 
 	private Connection conn = null;
 	private String sql;
+	private PreparedStatement pre;
+	private ResultSet rs;
 
 	public Database() throws ClassNotFoundException, SQLException {
 		// Registrera JDBC drivrutin
@@ -43,7 +53,7 @@ public class Database {
 		boolean created = false;
 		System.out.println();
 		System.out.print("Journaltabell ");
-		sql = "CREATE TABLE Records("
+		sql = "CREATE TABLE records("
 				+ "recordNbr	integer auto_increment,"
 				+ "patient		char(12)  		NOT NULL,"
 				+ "nurse		char(12)  		NOT NULL,"
@@ -77,48 +87,199 @@ public class Database {
 		return dropped;
 	}
 	
-	public Record createRecord(User responsible, Patient patient, Nurse nurse, List<String> data) {
+	public Record createRecord(User responsible, Patient patient, Nurse nurse, String data) {
 		// Is User a doctor?
+		if(!(responsible instanceof Doctor))
+			return null;
+		// SQL prepared statement inserted to database
+		sql = "INSERT into records (patient, nurse, doctor, division, data) VALUES(?, ?, ?, ?, ?)";
+		try {
+			pre = conn.prepareStatement(sql);
+			pre.setString(1, patient.getPNbr());
+			pre.setString(2, nurse.getPNbr());
+			pre.setString(3, ((Doctor)responsible).getPNbr());
+			pre.setString(4, ((Doctor)responsible).getDivision());
+			pre.setString(5, data.toString());
+			pre.execute();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 		
-		// SQL prepared statement
-		
-		// SQL Create record and fetch recordNbr
-		
-		Record record = new Record(0, patient, nurse, (Doctor)responsible, ((Doctor)responsible).getDivision(), data);
+		// Fetch recordNbr
+		int recordNbr = -1;
+		sql = "SELECT LAST_INSERT_ID()";
+		try {
+			rs = conn.createStatement().executeQuery(sql);
+			while(rs.next()) {
+				recordNbr = rs.getInt("LAST_INSERT_ID()");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		Record record = new Record(recordNbr, patient, nurse, (Doctor)responsible, ((Doctor)responsible).getDivision(), data);
+		System.out.println(record);
 		return record;
 	}
 	
-	public boolean editRecord(User responsible, Patient patient, int recordNbr, List<String> data) {
-		// Is User a doctor or nurse and is at the stored records division?
-		// ...
+	public boolean editRecord(User responsible, int recordNbr, String data) {
+		// Is User a doctor or nurse
+		if(!(responsible instanceof Nurse || responsible instanceof Doctor)) {
+			return false;
+		}
+		// Check if User is accociated with patient
+		if(!isAssociated(recordNbr, responsible)) {
+			return false;			
+		}
+		// Free to edit patient's record
+		Record record = getRecord(recordNbr);
+		record.appendData(data);
+		
+		sql = "UPDATE records SET data = ? WHERE recordNbr = ?";
+		try {
+			pre = conn.prepareStatement(sql);
+			pre.setString(1, record.getData());
+			pre.setInt(2, recordNbr);
+			return pre.execute();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
 		return false;
 	}
 	
 	public boolean deleteRecord(User responsible, int recordNbr) {
 		// Is User a government?
-		// ...
+		if(!(responsible instanceof Government)) {
+			return false;
+		}
+		sql = "DELETE FROM records WHERE recordNbr = ?";
+		try {
+			pre = conn.prepareStatement(sql);
+			pre.setInt(1, recordNbr);
+			return pre.execute();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 		return false;
 	}
 	
-	public List<Record> getRecords(User responsible, Patient patient) {
-		// Is User associated with patient?
-		// ...
-		return null;
+	private Record getRecord(int recordNbr) {
+		Record record = null;
+		sql = "SELECT * FROM records WHERE recordNbr = ?";
+		try {
+			pre = conn.prepareStatement(sql);
+			pre.setInt(1, recordNbr);
+			rs = pre.executeQuery();
+			while(rs.next()) {
+				String patient = rs.getString("patient");
+				String nurse = rs.getString("nurse");
+				String doctor = rs.getString("doctor");
+				String division = rs.getString("division");
+				String data = rs.getString("data");
+				record = new Record(recordNbr, new Patient(null, patient), new Nurse(null, nurse, division), 
+						new Doctor(null, doctor, division), division, data);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return record;
+	}
+	
+	public List<Record> getRecords(User responsible) {
+		List<Record> records = new LinkedList<Record>();
+		// Prepare Statements
+		if(responsible instanceof Patient) {
+			sql = "SELECT * FROM records WHERE patient = ?";
+			try {
+				pre = conn.prepareStatement(sql);
+				pre.setString(1, responsible.getPNbr());
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		} else if(responsible instanceof Nurse || responsible instanceof Doctor) {
+			sql = "SELECT * FROM records WHERE division = ?";
+			try {
+				pre = conn.prepareStatement(sql);
+				// Eftersom Doctor är en subklass av Nurse är detta helt ok
+				pre.setString(1, ((Nurse)responsible).getDivision());
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		} else if(responsible instanceof Government) {
+			sql = "SELECT * FROM records";
+			try {
+				pre = conn.prepareStatement(sql);
+			} catch(SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		// Query execution
+		try {
+			rs = pre.executeQuery();
+			while(rs.next()) {
+				int recordNbr = rs.getInt("recordNbr");
+				String division = rs.getString("division");
+				Patient patient = new Patient(null, rs.getString("patient"));
+				Nurse nurse = new Nurse(null, rs.getString("nurse"), division);
+				Doctor doctor = new Doctor(null, rs.getString("doctor"), division);
+				String data = rs.getString("data");
+				records.add(new Record(recordNbr, patient, nurse, doctor, division, data));
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		return records;
 	}
 	
 	/**
-	 * Checks if the responsible <code>User</code> is associated with patient <code>Patient</code>
+	 * Checks if the responsible <code>responsible</code> is associated with <code>recordNbr</code>.
+	 * Associated is defined as, <code>responsible</code> belongs to the same division as <code>recordNbr</code>.
 	 */
-	public boolean isAssociated(User responsible, Patient patient) {
-		// Check if User is accociated with patient
+	public boolean isAssociated(int recordNbr, User responsible) {
+		// Check if responsible user is the same as in a record
+		sql = "SELECT patient,nurse,doctor FROM records WHERE recordNbr = ?";
+		try {
+			pre = conn.prepareStatement(sql);
+			pre.setInt(1, recordNbr);
+			rs = pre.executeQuery();
+			while(rs.next()) {
+				String responsiblePNbr = responsible.getPNbr();
+				String patientPNbr = rs.getString("patient");
+				String nursePNbr = rs.getString("nurse");
+				String doctorPnbr = rs.getString("doctor");
+				if(responsiblePNbr.equals(nursePNbr) || responsiblePNbr.equals(doctorPnbr) 
+						|| responsiblePNbr.equals(patientPNbr)) {
+					return true;					
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 		return false;
 	}
 	
-	public static void main(String[] args) throws ClassNotFoundException, SQLException {
+	public static void main(String[] args) throws Exception {
 		Database db = new Database();
 		db.establishConnection();
-		db.dropTable();
-		db.createTable();
-		db.terminateConnection();
+		//db.dropTable();
+		//db.createTable();
+		//Record rec = db.createRecord(new Doctor("David", "1970-01-03", "Bones"), new Patient("Pia", "1980-01-02"), new Nurse("Nina", "1990-01-02", "Bones"), "Flyttad");
+		//db.editRecord(new Doctor("Dennis", "1970-01-02", "Surgery"), 2, "Hej jag har inga rättigheter här!");
+		//db.editRecord(new Doctor("David123Swag", "1970-01-01", "Meh"), 2, "Utlagd");
+		//db.deleteRecord(new Government("VICTOR"), 1);
+//		System.out.println("Doctor Surgery");
+//		for(Record rec2 : db.getRecords(new Doctor("Davids kompis", "1970-01-02", "Surgery"))) {
+//			System.out.println(rec2);
+//		}
+//		System.out.println("Patient");
+//		for(Record rec1 : db.getRecords(new Patient("Asdasd", "1980-01-01"))) {
+//			System.out.println(rec1);
+//		}
+//		System.out.println("Gov");
+//		for(Record rec3 : db.getRecords(new Government("WIE"))) {
+//			System.out.println(rec3);
+//		}
+		db.terminateConnection(); 
 	}
 }

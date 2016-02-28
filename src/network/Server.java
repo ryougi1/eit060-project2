@@ -1,22 +1,38 @@
 package network;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.security.KeyStore;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Scanner;
 
 import javax.net.ServerSocketFactory;
-import javax.net.ssl.*;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLServerSocket;
+import javax.net.ssl.SSLServerSocketFactory;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.TrustManagerFactory;
 import javax.security.cert.X509Certificate;
 
-import types.*;
-import database.*;
+import database.Database;
+import database.Record;
+import types.Doctor;
+import types.Government;
+import types.Nurse;
+import types.Patient;
+import types.User;
 
 public class Server implements Runnable {
     private ServerSocket serverSocket = null;
     private static int numConnectedClients = 0;
     private Database db;
-    private boolean debug = true;
+    private boolean debug = false;
 
     public Server(ServerSocket ss) throws IOException, ClassNotFoundException, SQLException {
         serverSocket = ss;
@@ -88,7 +104,6 @@ public class Server implements Runnable {
 
     private void dbInput(User u, BufferedReader in, PrintWriter out) throws Exception {
     	String command = sendRequest("Enter a command:", in, out);
-        String patient = sendRequest("Enter patient name", in, out);
     	String log = null;
 		switch (command.toLowerCase()) {
 		case "add":	
@@ -97,11 +112,12 @@ public class Server implements Runnable {
 				sendDeniedPermission(command, in, out);
 				break;
 			}
+	        String patient = sendRequest("Enter patient name", in, out);
 			String nurse = sendRequest("Enter name of nurse associated with " + patient, in, out);
 			String data = sendRequest("Enter data for " + patient + "'s record", in, out);
-			
-			log = "Record: " + "Command: " + command + ". Patient: " + patient 
-					+ ". Nurse: " + nurse + ". Data: " + data;
+			db.createRecord(u, new Patient(null, patient), new Nurse(null, nurse, null), data);
+			log = u.getPNbr() + " executed " + command.toUpperCase() + " - Patient: " + patient 
+					+ " with nurse: " + nurse + " and data: " + data;
 			println(log);
 			break;
 		case "remove": 
@@ -110,9 +126,16 @@ public class Server implements Runnable {
 				sendDeniedPermission(command, in, out);
 				break;
 			}
+			int recordNbr = Integer.parseInt(sendRequest("Enter record number", in, out));
+			db.deleteRecord(u, recordNbr);
+			log = u.getPNbr() + " executed " + command.toUpperCase() + " - RecordNbr: " + recordNbr;
+			println(log);
 			break;
 		case "read": 
 			// Everyone can read records, assumed they are associated with patient
+			List<Record> list = db.getRecords(u);
+			sendRequest(list.toString() + " PRESS [ENTER] to continue", in, out);
+			log = u.getPNbr() + " executed " + command.toUpperCase();
 			break;
 		case "edit": 
 			// Only Nurse and Doctor is allowed to edit records
@@ -120,6 +143,12 @@ public class Server implements Runnable {
 				sendDeniedPermission(command, in, out);
 				break;
 			}
+			recordNbr = Integer.parseInt(sendRequest("Enter record number", in, out));
+			String moredata = sendRequest("Enter additional data for record " + recordNbr, in, out);
+			db.editRecord(u, recordNbr, moredata);
+			log = u.getPNbr() + " executed " + command.toUpperCase() + " - RecordNbr: " + recordNbr 
+					+ " with data: " + moredata;
+			println(log);
 			break;
 		default: 
 			sendRequest("You didn't use a correct command", in, out);
@@ -142,7 +171,7 @@ public class Server implements Runnable {
     
     private void sendDeniedPermission(String command, BufferedReader in, PrintWriter out) throws Exception {
     	sendRequest("You don't have the required permission to execute " + command 
-    			+ "\nPress [ENTER] to continue", in, out);
+    			+ ". Press [ENTER] to continue", in, out);
     }
 
 	private void newListener() { (new Thread(this)).start(); } // calls run()
