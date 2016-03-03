@@ -17,7 +17,7 @@ public class Client {
 
     public static void main(String[] args) throws Exception {
     	if(args.length == 0) {
-    		System.out.print("Localhost port pNbr password: ");
+    		System.out.print("Localhost port pNbr: ");
     		args = new Scanner(System.in).nextLine().split(" ");    		
     	}
     	String host = null;
@@ -30,6 +30,15 @@ public class Client {
             System.out.println("USAGE: java client host port");
             System.exit(-1);
         }
+        Console cons;
+        char[] password = null;
+        if ((cons = System.console()) != null &&
+            (password = cons.readPassword("[%s]", "Password:")) != null) {
+        } else {
+        	System.out.print("(In-Eclipse) Password: ");
+        	password = new Scanner(System.in).nextLine().toCharArray();
+        }
+        
         try { /* get input parameters */
             host = args[0];
             port = Integer.parseInt(args[1]);
@@ -38,11 +47,10 @@ public class Client {
             System.out.println("USAGE: java client host port");
             System.exit(-1);
         }
-        
         try { /* set up a key manager for client authentication */
             SSLSocketFactory factory = null;
             try {
-            	char[] password = args[3].toCharArray();
+            	//char[] password = args[3].toCharArray();
                 KeyStore ks = KeyStore.getInstance("JKS");
                 KeyStore ts = KeyStore.getInstance("JKS");
                 KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
@@ -53,6 +61,7 @@ public class Client {
 				kmf.init(ks, password); // user password (keypass)
 				tmf.init(ts); // keystore can be used as truststore here
 				ctx.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
+				java.util.Arrays.fill(password, ' ');
                 factory = ctx.getSocketFactory();
             } catch (Exception e) {
                 throw new IOException(e.getMessage());
