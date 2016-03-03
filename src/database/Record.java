@@ -1,6 +1,8 @@
 package database;
 
-import types.*;
+import types.Doctor;
+import types.Nurse;
+import types.Patient;
 
 
 public class Record {
@@ -33,7 +35,7 @@ public class Record {
 	}
 	
 	public void appendData(String data) {
-		this.data.append(" | " + data);
+		this.data.append(", " + data);
 	}
 	
 	@Override

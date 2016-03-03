@@ -1,9 +1,11 @@
 package GUI;
 
-import javax.swing.*;
+import java.awt.GridLayout;
+import java.awt.event.ActionListener;
 
-import java.awt.*;
-import java.awt.event.*;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 
 /**
  * A GUI panel which contains buttons and a message line.

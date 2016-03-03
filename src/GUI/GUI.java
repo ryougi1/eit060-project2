@@ -1,12 +1,14 @@
 package GUI;
 
-import javax.swing.*;
-import javax.swing.event.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+
+import javax.swing.JFrame;
+import javax.swing.JTabbedPane;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import database.Database;
-
-import java.awt.*;
-import java.awt.event.*;
 
 /**
  * MovieGUI is the user interface to the movie database. It sets up the main

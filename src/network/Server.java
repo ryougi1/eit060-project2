@@ -103,7 +103,7 @@ public class Server implements Runnable {
     }
 
     private void dbInput(User u, BufferedReader in, PrintWriter out) throws Exception {
-    	String command = sendRequest("Enter a command:", in, out);
+    	String command = sendRequest("Enter a command (add, remove, read, edit):", in, out);
     	String log = null;
 		switch (command.toLowerCase()) {
 		case "add":	
@@ -136,7 +136,10 @@ public class Server implements Runnable {
 		case "read": 
 			// Everyone can read records, assumed they are associated with patient
 			List<Record> list = db.getRecords(u);
-			sendRequest(list.toString() + " PRESS [ENTER] to continue", in, out);
+			for(Record record : list) {
+				sendRequest(record.toString() + " -- [ENTER] for next record", in, out);
+			}
+			sendRequest("End of logs -- PRESS [ENTER] to continue", in, out);
 			log = u.getPNbr() + " executed " + command.toUpperCase();
 			println(log);
 			db.createLog(log);
@@ -179,7 +182,7 @@ public class Server implements Runnable {
     	println(log);
     	db.createLog(log);
     	sendRequest("You don't have the required permission to execute " + command 
-    			+ ". Press [ENTER] to continue", in, out);
+    			+ ". -- [ENTER] to continue", in, out);
     }
 
 	private void newListener() { (new Thread(this)).start(); } // calls run()

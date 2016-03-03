@@ -1,8 +1,11 @@
 package GUI;
 
-import javax.swing.*;
+import java.awt.GridLayout;
 
-import java.awt.*;
+import javax.swing.BoxLayout;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
 
 /**
  * A GUI panel which contains a number of text fields on top of each other. Each

@@ -1,9 +1,20 @@
 package network;
-import java.io.*;
-import javax.net.ssl.*;
-import javax.security.cert.X509Certificate;
+import java.io.BufferedReader;
+import java.io.Console;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.security.KeyStore;
 import java.util.Scanner;
+
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManagerFactory;
+import javax.security.cert.X509Certificate;
 
 /*
  * This example shows how to set up a key manager to perform client
@@ -95,17 +106,15 @@ public class Client {
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             String msg;
 			for (;;) {
-				System.out.println("received '" + in.readLine() + "' from server\n");
+				System.out.println(in.readLine() + "\n");
 
 				System.out.print("> ");
                 msg = read.readLine();
                 if (msg.equalsIgnoreCase("quit")) {
 				    break;
 				}
-                System.out.print("sending '" + msg + "' to server...");
                 out.println(msg);
                 out.flush();
-                System.out.println("done");
 
             }
             in.close();

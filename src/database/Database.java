@@ -1,7 +1,5 @@
 package database;
 
-import java.io.FileInputStream;
-import java.security.cert.CertificateFactory;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -9,8 +7,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
-
-import java.security.cert.X509Certificate;
 
 import types.Doctor;
 import types.Government;
@@ -320,7 +316,7 @@ public class Database {
 	public static void main(String[] args) throws Exception {
 		Database db = new Database();
 		db.establishConnection();
-		//db.dropTable();
+		db.dropTable();
 		db.createTable();
 		//Record rec = db.createRecord(new Doctor("David", "1970-01-03", "Bones"), new Patient("Pia", "1980-01-02"), new Nurse("Nina", "1990-01-02", "Bones"), "Flyttad");
 		//db.editRecord(new Doctor("Dennis", "1970-01-02", "Surgery"), 2, "Hej jag har inga rättigheter här!");
