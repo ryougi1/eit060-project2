@@ -109,7 +109,7 @@ public class Server implements Runnable {
 		case "add":	
 			// Only doctor can create new records for a patient provided that the doctor is treating the patient
 			if(!(u instanceof Doctor)) {
-				sendDeniedPermission(command, in, out);
+				sendDeniedPermission(u, command, in, out);
 				break;
 			}
 	        String patient = sendRequest("Enter patient name", in, out);
@@ -119,28 +119,32 @@ public class Server implements Runnable {
 			log = u.getPNbr() + " executed " + command.toUpperCase() + " - Patient: " + patient 
 					+ " with nurse: " + nurse + " and data: " + data;
 			println(log);
+			db.createLog(log);
 			break;
 		case "remove": 
 			// Only government agency is allowed to delete records
 			if(!(u instanceof Government)) {
-				sendDeniedPermission(command, in, out);
+				sendDeniedPermission(u, command, in, out);
 				break;
 			}
 			int recordNbr = Integer.parseInt(sendRequest("Enter record number", in, out));
 			db.deleteRecord(u, recordNbr);
 			log = u.getPNbr() + " executed " + command.toUpperCase() + " - RecordNbr: " + recordNbr;
 			println(log);
+			db.createLog(log);
 			break;
 		case "read": 
 			// Everyone can read records, assumed they are associated with patient
 			List<Record> list = db.getRecords(u);
 			sendRequest(list.toString() + " PRESS [ENTER] to continue", in, out);
 			log = u.getPNbr() + " executed " + command.toUpperCase();
+			println(log);
+			db.createLog(log);
 			break;
 		case "edit": 
 			// Only Nurse and Doctor is allowed to edit records
 			if(!(u instanceof Nurse || u instanceof Doctor)) {
-				sendDeniedPermission(command, in, out);
+				sendDeniedPermission(u, command, in, out);
 				break;
 			}
 			recordNbr = Integer.parseInt(sendRequest("Enter record number", in, out));
@@ -149,6 +153,7 @@ public class Server implements Runnable {
 			log = u.getPNbr() + " executed " + command.toUpperCase() + " - RecordNbr: " + recordNbr 
 					+ " with data: " + moredata;
 			println(log);
+			db.createLog(log);
 			break;
 		default: 
 			sendRequest("You didn't use a correct command", in, out);
@@ -169,7 +174,10 @@ public class Server implements Runnable {
         return clientAns;
     }
     
-    private void sendDeniedPermission(String command, BufferedReader in, PrintWriter out) throws Exception {
+    private void sendDeniedPermission(User u, String command, BufferedReader in, PrintWriter out) throws Exception {
+    	String log = "DENIED: " + u.getPNbr() + " executed " + command.toUpperCase();
+    	println(log);
+    	db.createLog(log);
     	sendRequest("You don't have the required permission to execute " + command 
     			+ ". Press [ENTER] to continue", in, out);
     }

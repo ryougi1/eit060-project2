@@ -69,6 +69,19 @@ public class Database {
 		} catch (SQLException e) {
 			System.out.println("inte skapad, finns redan.");
 		}
+		System.out.print("Loggtabell ");
+		sql = "CREATE TABLE logs("
+				+ "logDate		datetime			NOT NULL,"
+				+ "data			varchar(1000)	NOT NULL,"
+				+ "primary key 	(logDate)"
+			+ ");";
+		try {
+			conn.createStatement().executeUpdate(sql);
+			System.out.println("skapad.");
+			created = true;
+		} catch (SQLException e) {
+			System.out.println("inte skapad, finns redan.");
+		}
 		return created;
 	}
 
@@ -77,6 +90,15 @@ public class Database {
 		System.out.println();
 		System.out.print("Journaltabell ");
 		sql = "DROP TABLE records";
+		try {
+			conn.createStatement().executeUpdate(sql);
+			System.out.println("borttagen.");
+			dropped = true;
+		} catch (SQLException e) {
+			System.out.println("inte borttagen, finns inte.");
+		}
+		System.out.print("Loggtabell ");
+		sql = "DROP TABLE logs";
 		try {
 			conn.createStatement().executeUpdate(sql);
 			System.out.println("borttagen.");
@@ -119,6 +141,19 @@ public class Database {
 		Record record = new Record(recordNbr, patient, nurse, (Doctor)responsible, ((Doctor)responsible).getDivision(), data);
 		System.out.println(record);
 		return record;
+	}
+	
+	public void createLog(String data) {
+		// SQL prepared statement inserted to database
+		sql = "INSERT into logs (logDate, data) VALUES(NOW(), ?)";
+		try {
+			pre = conn.prepareStatement(sql);
+			pre.setString(1, data);
+			pre.execute();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		System.out.println(data);
 	}
 	
 	public boolean editRecord(User responsible, int recordNbr, String data) {
@@ -232,6 +267,29 @@ public class Database {
 		return records;
 	}
 	
+	public List<String> getLogs() {
+		List<String> logs = new LinkedList<String>();
+		// Prepare Statements
+		sql = "SELECT * FROM logs";
+		try {
+			pre = conn.prepareStatement(sql);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		// Query execution
+		try {
+			rs = pre.executeQuery();
+			while(rs.next()) {
+				String data = rs.getString("data");
+				logs.add(data);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		return logs;
+	}
+	
 	/**
 	 * Checks if the responsible <code>responsible</code> is associated with <code>recordNbr</code>.
 	 * Associated is defined as, <code>responsible</code> belongs to the same division as <code>recordNbr</code>.
@@ -263,7 +321,7 @@ public class Database {
 		Database db = new Database();
 		db.establishConnection();
 		//db.dropTable();
-		//db.createTable();
+		db.createTable();
 		//Record rec = db.createRecord(new Doctor("David", "1970-01-03", "Bones"), new Patient("Pia", "1980-01-02"), new Nurse("Nina", "1990-01-02", "Bones"), "Flyttad");
 		//db.editRecord(new Doctor("Dennis", "1970-01-02", "Surgery"), 2, "Hej jag har inga rättigheter här!");
 		//db.editRecord(new Doctor("David123Swag", "1970-01-01", "Meh"), 2, "Utlagd");
