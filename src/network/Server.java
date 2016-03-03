@@ -103,7 +103,7 @@ public class Server implements Runnable {
     }
 
     private void dbInput(User u, BufferedReader in, PrintWriter out) throws Exception {
-    	String command = sendRequest("Enter a command (add, remove, read, edit):", in, out);
+    	String command = sendRequest("Enter a command (add, remove, read, edit, logs):", in, out);
     	String log = null;
 		switch (command.toLowerCase()) {
 		case "add":	
@@ -139,7 +139,7 @@ public class Server implements Runnable {
 			for(Record record : list) {
 				sendRequest(record.toString() + " -- [ENTER] for next record", in, out);
 			}
-			sendRequest("End of logs -- PRESS [ENTER] to continue", in, out);
+			sendRequest("End of records -- PRESS [ENTER] to continue", in, out);
 			log = u.getPNbr() + " executed " + command.toUpperCase();
 			println(log);
 			db.createLog(log);
@@ -155,6 +155,21 @@ public class Server implements Runnable {
 			db.editRecord(u, recordNbr, moredata);
 			log = u.getPNbr() + " executed " + command.toUpperCase() + " - RecordNbr: " + recordNbr 
 					+ " with data: " + moredata;
+			println(log);
+			db.createLog(log);
+			break;
+		case "logs":
+			// Only government agency is allowed to delete records
+			if(!(u instanceof Government)) {
+				sendDeniedPermission(u, command, in, out);
+				break;
+			}
+			List<String> logs = db.getLogs(u);
+			for(String logData : logs) {
+				sendRequest(logData + " -- [ENTER] for next record", in, out);
+			}
+			sendRequest("End of logs -- PRESS [ENTER] to continue", in, out);
+			log = u.getPNbr() + " executed " + command.toUpperCase();
 			println(log);
 			db.createLog(log);
 			break;

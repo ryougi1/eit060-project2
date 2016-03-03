@@ -263,7 +263,11 @@ public class Database {
 		return records;
 	}
 	
-	public List<String> getLogs() {
+	public List<String> getLogs(User responsible) {
+		// Is User a government?
+		if(!(responsible instanceof Government)) {
+			return null;
+		}
 		List<String> logs = new LinkedList<String>();
 		// Prepare Statements
 		sql = "SELECT * FROM logs";
