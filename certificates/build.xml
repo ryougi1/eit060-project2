@@ -102,4 +102,64 @@
     <delete file="${CA.dir}/servercert.cer" />
     <delete file="${CA.dir}/server.csr" />
   </target>
+
+  <target name="reset" depends="clean, clean-server">
+    <antcall target="server"></antcall>
+    <antcall target="certs">
+      <param name="pNbr" value="1970-01-01"/>
+      <param name="div" value="Diagnostics"/>
+      <param name="type" value="Doctor"/>
+      <param name="name" value="Dolle Dollsson"/>
+      <param name="pw" value="dolle1"/>
+    </antcall>
+    <antcall target="certs">
+      <param name="pNbr" value="1970-01-02"/>
+      <param name="div" value="Surgery"/>
+      <param name="type" value="Doctor"/>
+      <param name="name" value="Douglas Doggsson"/>
+      <param name="pw" value="douglas"/>
+    </antcall>
+    <antcall target="certs">
+      <param name="pNbr" value="1980-01-01"/>
+      <param name="div" value="Surgery"/>
+      <param name="type" value="Nurse"/>
+      <param name="name" value="Nini Nilsson"/>
+      <param name="pw" value="ninini"/>
+    </antcall>
+    <antcall target="certs">
+      <param name="pNbr" value="1980-01-02"/>
+      <param name="div" value="Diagnostics"/>
+      <param name="type" value="Nurse"/>
+      <param name="name" value="Nina Nordman"/>
+      <param name="pw" value="nordman"/>
+    </antcall>
+    <antcall target="certs">
+      <param name="pNbr" value="1990-01-01"/>
+      <param name="div" value="Surgery"/>
+      <param name="type" value="Patient"/>
+      <param name="name" value="Patrik Patriksson"/>
+      <param name="pw" value="patrik"/>
+    </antcall>
+    <antcall target="certs">
+      <param name="pNbr" value="1990-01-02"/>
+      <param name="div" value="Diagnostics"/>
+      <param name="type" value="Patient"/>
+      <param name="name" value="Pelle Pan"/>
+      <param name="pw" value="pelle1"/>
+    </antcall>
+    <antcall target="certs">
+      <param name="pNbr" value="1990-01-03"/>
+      <param name="div" value="Neurology"/>
+      <param name="type" value="Patient"/>
+      <param name="name" value="Peter Pan"/>
+      <param name="pw" value="peter123"/>
+    </antcall>
+    <antcall target="certs">
+      <param name="pNbr" value="1"/>
+      <param name="div" value="None"/>
+      <param name="type" value="Gov"/>
+      <param name="name" value="Socialstyrelsen"/>
+      <param name="pw" value="social"/>
+    </antcall>
+  </target>
 </project>

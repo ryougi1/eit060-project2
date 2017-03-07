@@ -17,10 +17,10 @@ import types.User;
 public class Database {
 
 	private static final String JDBC_DRIVER = "com.mysql.jdbc.Driver";
-	private static final String DB_URL = "jdbc:mysql://puccini.cs.lth.se:3306/db33";
+	private static final String DB_URL = "jdbc:mysql://eu-cdbr-west-01.cleardb.com/heroku_e980487365507d8?reconnect=true";
 
-	private static final String USER = "db33";
-	private static final String PASS = "qkg284wp";
+	private static final String USER = "b2c82e66ef61f2";
+	private static final String PASS = "970d69bc";
 
 	private Connection conn = null;
 	private String sql;
@@ -31,20 +31,20 @@ public class Database {
 		// Registrera JDBC drivrutin
 		Class.forName(JDBC_DRIVER);
 	}
-	
+
 	public void establishConnection() throws SQLException {
 		// Anslut
 		System.out.print("Databasen " + DB_URL);
 		conn = DriverManager.getConnection(DB_URL, USER, PASS);
 		System.out.println(" ansluten.");
 	}
-	
+
 	public void terminateConnection() throws SQLException {
 		System.out.print("Databasen " + DB_URL);
 		conn.close();
 		System.out.println(" stängd.");
 	}
-	
+
 	public boolean createTable() {
 		boolean created = false;
 		System.out.println();
@@ -104,7 +104,7 @@ public class Database {
 		}
 		return dropped;
 	}
-	
+
 	public Record createRecord(User responsible, Patient patient, Nurse nurse, String data) {
 		// Is User a doctor?
 		if(!(responsible instanceof Doctor))
@@ -122,7 +122,7 @@ public class Database {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		
+
 		// Fetch recordNbr
 		int recordNbr = -1;
 		sql = "SELECT LAST_INSERT_ID()";
@@ -138,7 +138,7 @@ public class Database {
 		System.out.println(record);
 		return record;
 	}
-	
+
 	public void createLog(String data) {
 		// SQL prepared statement inserted to database
 		sql = "INSERT into logs (logDate, data) VALUES(NOW(), ?)";
@@ -151,7 +151,7 @@ public class Database {
 		}
 		System.out.println(data);
 	}
-	
+
 	public boolean editRecord(User responsible, int recordNbr, String data) {
 		// Is User a doctor or nurse
 		if(!(responsible instanceof Nurse || responsible instanceof Doctor)) {
@@ -159,12 +159,12 @@ public class Database {
 		}
 		// Check if User is accociated with patient
 		if(!isAssociated(recordNbr, responsible)) {
-			return false;			
+			return false;
 		}
 		// Free to edit patient's record
 		Record record = getRecord(recordNbr);
 		record.appendData(data);
-		
+
 		sql = "UPDATE records SET data = ? WHERE recordNbr = ?";
 		try {
 			pre = conn.prepareStatement(sql);
@@ -174,10 +174,10 @@ public class Database {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		
+
 		return false;
 	}
-	
+
 	public boolean deleteRecord(User responsible, int recordNbr) {
 		// Is User a government?
 		if(!(responsible instanceof Government)) {
@@ -193,7 +193,7 @@ public class Database {
 		}
 		return false;
 	}
-	
+
 	private Record getRecord(int recordNbr) {
 		Record record = null;
 		sql = "SELECT * FROM records WHERE recordNbr = ?";
@@ -207,7 +207,7 @@ public class Database {
 				String doctor = rs.getString("doctor");
 				String division = rs.getString("division");
 				String data = rs.getString("data");
-				record = new Record(recordNbr, new Patient(null, patient), new Nurse(null, nurse, division), 
+				record = new Record(recordNbr, new Patient(null, patient), new Nurse(null, nurse, division),
 						new Doctor(null, doctor, division), division, data);
 			}
 		} catch (SQLException e) {
@@ -215,7 +215,7 @@ public class Database {
 		}
 		return record;
 	}
-	
+
 	public List<Record> getRecords(User responsible) {
 		List<Record> records = new LinkedList<Record>();
 		// Prepare Statements
@@ -259,10 +259,10 @@ public class Database {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		
+
 		return records;
 	}
-	
+
 	public List<String> getLogs(User responsible) {
 		// Is User a government?
 		if(!(responsible instanceof Government)) {
@@ -286,10 +286,10 @@ public class Database {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		
+
 		return logs;
 	}
-	
+
 	/**
 	 * Checks if the responsible <code>responsible</code> is associated with <code>recordNbr</code>.
 	 * Associated is defined as, <code>responsible</code> belongs to the same division as <code>recordNbr</code>.
@@ -306,9 +306,9 @@ public class Database {
 				String patientPNbr = rs.getString("patient");
 				String nursePNbr = rs.getString("nurse");
 				String doctorPnbr = rs.getString("doctor");
-				if(responsiblePNbr.equals(nursePNbr) || responsiblePNbr.equals(doctorPnbr) 
+				if(responsiblePNbr.equals(nursePNbr) || responsiblePNbr.equals(doctorPnbr)
 						|| responsiblePNbr.equals(patientPNbr)) {
-					return true;					
+					return true;
 				}
 			}
 		} catch (SQLException e) {
@@ -316,28 +316,12 @@ public class Database {
 		}
 		return false;
 	}
-	
+
 	public static void main(String[] args) throws Exception {
 		Database db = new Database();
 		db.establishConnection();
 		db.dropTable();
 		db.createTable();
-		//Record rec = db.createRecord(new Doctor("David", "1970-01-03", "Bones"), new Patient("Pia", "1980-01-02"), new Nurse("Nina", "1990-01-02", "Bones"), "Flyttad");
-		//db.editRecord(new Doctor("Dennis", "1970-01-02", "Surgery"), 2, "Hej jag har inga rättigheter här!");
-		//db.editRecord(new Doctor("David123Swag", "1970-01-01", "Meh"), 2, "Utlagd");
-		//db.deleteRecord(new Government("VICTOR"), 1);
-//		System.out.println("Doctor Surgery");
-//		for(Record rec2 : db.getRecords(new Doctor("Davids kompis", "1970-01-02", "Surgery"))) {
-//			System.out.println(rec2);
-//		}
-//		System.out.println("Patient");
-//		for(Record rec1 : db.getRecords(new Patient("Asdasd", "1980-01-01"))) {
-//			System.out.println(rec1);
-//		}
-//		System.out.println("Gov");
-//		for(Record rec3 : db.getRecords(new Government("WIE"))) {
-//			System.out.println(rec3);
-//		}
-		db.terminateConnection(); 
+		db.terminateConnection();
 	}
 }
